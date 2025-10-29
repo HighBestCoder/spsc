@@ -20,12 +20,13 @@ int main() {
     std::cout << std::endl;
     
     // Soft array implementation
-    auto* soft_queue = SPSCQueueSoftArray<uint64_t>::create(queue_size);
+    using SoftArrayQueue = SPSCQueueSoftArray<uint64_t, 1024, 64>;
+    auto* soft_queue = SoftArrayQueue::create();
     std::cout << "Soft Array SPSCQueue:" << std::endl;
-    std::cout << "  Base class size: " << sizeof(SPSCQueueSoftArray<uint64_t>) << " bytes" << std::endl;
-    std::cout << "  Buffer size: " << (queue_size + 1) * sizeof(uint64_t) << " bytes" << std::endl;
-    std::cout << "  Total allocated size: " << sizeof(SPSCQueueSoftArray<uint64_t>) + (queue_size + 1) * sizeof(uint64_t) << " bytes" << std::endl;
-    std::cout << "  Buffer allocation: Inline with object (flexible array)" << std::endl;
+    std::cout << "  Base class size: " << sizeof(SoftArrayQueue) << " bytes" << std::endl;
+    std::cout << "  Buffer size: " << 1024 * sizeof(uint64_t) << " bytes" << std::endl;
+    std::cout << "  Total allocated size: " << sizeof(SoftArrayQueue) << " bytes" << std::endl;
+    std::cout << "  Buffer allocation: Inline with object (fixed array)" << std::endl;
     std::cout << "  Memory layout: Object and buffer are contiguous" << std::endl;
     std::cout << "  Cache locality: Better (single allocation)" << std::endl;
     std::cout << std::endl;
@@ -66,7 +67,7 @@ int main() {
     std::cout << std::endl;
     std::cout << "Both implementations work correctly!" << std::endl;
     
-    SPSCQueueSoftArray<uint64_t>::destroy(soft_queue);
+    SoftArrayQueue::destroy(soft_queue);
     
     return 0;
 }

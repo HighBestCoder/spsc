@@ -44,16 +44,17 @@ make help
 
 ### 推荐配置 (64字节缓存行)
 ```cpp
-using Queue = SPSCQueueSoftArray<int, 64>;
-auto* queue = Queue::create(1024);
+using Queue = SPSCQueueSoftArray<int, 1024, 64>;
+auto* queue = Queue::create();
 // ... 使用队列
 Queue::destroy(queue);
 ```
 
 ### 高性能配置 (128字节缓存行)
 ```cpp
-using Queue = SPSCQueueSoftArray<int, 128>;
-auto* queue = Queue::create(1024);
+using Queue = SPSCQueueSoftArray<int, 1024, 128>;
+auto* queue = Queue::create();
+```
 // ... 使用队列  
 Queue::destroy(queue);
 ```

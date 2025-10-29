@@ -14,8 +14,8 @@ void basic_usage_example() {
     std::cout << "\n=== 基础使用示例 ===" << std::endl;
     
     // 创建推荐配置的队列 (64字节缓存行)
-    using Queue = SPSCQueueSoftArray<int, 64>;
-    auto* queue = Queue::create(1024);
+    using Queue = SPSCQueueSoftArray<int, 1024, 64>;
+    auto* queue = Queue::create();
     
     if (!queue) {
         std::cerr << "队列创建失败!" << std::endl;
@@ -61,8 +61,8 @@ void high_performance_example() {
     std::cout << "\n=== 高性能配置示例 ===" << std::endl;
     
     // 使用128字节缓存行获得最佳性能
-    using HighPerfQueue = SPSCQueueSoftArray<uint64_t, 128>;
-    auto* queue = HighPerfQueue::create(4096);
+    using HighPerfQueue = SPSCQueueSoftArray<uint64_t, 4096, 128>;
+    auto* queue = HighPerfQueue::create();
     
     const int TEST_COUNT = 1000000;
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -107,8 +107,8 @@ void cacheline_comparison_example() {
     // 测试不同缓存行大小
     std::vector<std::pair<std::string, std::function<double()>>> tests = {
         {"32字节", []() {
-            using Queue32 = SPSCQueueSoftArray<int, 32>;
-            auto* queue = Queue32::create(1024);
+            using Queue32 = SPSCQueueSoftArray<int, 1024, 32>;
+            auto* queue = Queue32::create();
             
             auto start = std::chrono::high_resolution_clock::now();
             
@@ -140,8 +140,8 @@ void cacheline_comparison_example() {
         }},
         
         {"64字节", []() {
-            using Queue64 = SPSCQueueSoftArray<int, 64>;
-            auto* queue = Queue64::create(1024);
+            using Queue64 = SPSCQueueSoftArray<int, 1024, 64>;
+            auto* queue = Queue64::create();
             
             auto start = std::chrono::high_resolution_clock::now();
             
@@ -173,8 +173,8 @@ void cacheline_comparison_example() {
         }},
         
         {"128字节", []() {
-            using Queue128 = SPSCQueueSoftArray<int, 128>;
-            auto* queue = Queue128::create(1024);
+            using Queue128 = SPSCQueueSoftArray<int, 1024, 128>;
+            auto* queue = Queue128::create();
             
             auto start = std::chrono::high_resolution_clock::now();
             
@@ -220,10 +220,10 @@ void cacheline_comparison_example() {
 void best_practices_example() {
     std::cout << "\n=== 最佳实践示例 ===" << std::endl;
     
-    using SafeQueue = SPSCQueueSoftArray<std::string, 64>;
+    using SafeQueue = SPSCQueueSoftArray<std::string, 512, 64>;
     
     // 1. 检查队列创建是否成功
-    auto* queue = SafeQueue::create(512);
+    auto* queue = SafeQueue::create();
     if (!queue) {
         std::cerr << "错误: 队列创建失败!" << std::endl;
         return;

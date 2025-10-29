@@ -10,10 +10,10 @@ constexpr int TEST_COUNT = 1000000;  // 测试次数
 constexpr int WARMUP_COUNT = 100000; // 预热次数
 
 // 定义不同缓存行大小的类型别名
-using Queue32 = SPSCQueueSoftArray<int, 32>;
-using Queue64 = SPSCQueueSoftArray<int, 64>;
-using Queue128 = SPSCQueueSoftArray<int, 128>;
-using Queue256 = SPSCQueueSoftArray<int, 256>;
+using Queue32 = SPSCQueueSoftArray<int, 1024, 32>;
+using Queue64 = SPSCQueueSoftArray<int, 1024, 64>;
+using Queue128 = SPSCQueueSoftArray<int, 1024, 128>;
+using Queue256 = SPSCQueueSoftArray<int, 1024, 256>;
 
 template<typename QueueType>
 void producer_consumer_test(QueueType* queue, const std::string& name) {
@@ -117,10 +117,10 @@ int main() {
     std::cout << "预热次数: " << WARMUP_COUNT << std::endl;
     
     // 创建不同缓存行大小的队列
-    auto* queue32 = Queue32::create(1024);
-    auto* queue64 = Queue64::create(1024);
-    auto* queue128 = Queue128::create(1024);
-    auto* queue256 = Queue256::create(1024);
+    auto* queue32 = Queue32::create();
+    auto* queue64 = Queue64::create();
+    auto* queue128 = Queue128::create();
+    auto* queue256 = Queue256::create();
     
     if (!queue32 || !queue64 || !queue128 || !queue256) {
         std::cerr << "队列创建失败!" << std::endl;

@@ -10,17 +10,13 @@
 #include <new>
 #include <cstdint>
 
-template <typename T, uint32_t kCacheLineSize = 64>
+template <typename T, uint32_t Capacity, uint32_t kCacheLineSize = 64>
 class SPSCQueueSoftArray {
  public:
   // 使用placement new创建SPSC队列
-  static SPSCQueueSoftArray* create(const int cap) noexcept {
-    int actual_cap = std::max<int>(cap + 1, 4);
-    
+  static SPSCQueueSoftArray* create() noexcept {
     // 计算需要的总内存大小
-    size_t base_size = sizeof(SPSCQueueSoftArray);
-    size_t array_size = sizeof(T) * actual_cap;
-    size_t total_size = base_size + array_size;
+    size_t total_size = sizeof(SPSCQueueSoftArray);
     
     // 分配内存，确保对齐
     void* raw_memory = operator new(total_size, std::align_val_t(kCacheLineSize));
@@ -29,7 +25,7 @@ class SPSCQueueSoftArray {
     }
     
     // 使用placement new构造对象
-    SPSCQueueSoftArray* queue = new(raw_memory) SPSCQueueSoftArray(actual_cap);
+    SPSCQueueSoftArray* queue = new(raw_memory) SPSCQueueSoftArray();
     return queue;
   }
   
@@ -53,7 +49,7 @@ class SPSCQueueSoftArray {
   bool push(Args &&...args) noexcept {
     auto const head = head_.load(std::memory_order_relaxed);
     auto next_head = head + 1;
-    if (next_head == cap_) {
+    if (next_head == Capacity) {
       next_head = 0;
     }
 
@@ -79,7 +75,7 @@ class SPSCQueueSoftArray {
   void pop() noexcept {
     auto tail = tail_.load(std::memory_order_relaxed);
     auto next_tail = tail + 1;
-    if (next_tail == cap_) {
+    if (next_tail == Capacity) {
       next_tail = 0;
     }
     buf_[tail].~T();
@@ -91,18 +87,18 @@ class SPSCQueueSoftArray {
     int tail = tail_.load(std::memory_order_acquire);
     int diff = head - tail;
     if (diff < 0) {
-      diff += cap_;
+      diff += Capacity;
     }
     return static_cast<size_t>(diff);
   }
 
   int capacity() const noexcept {
-    return cap_;
+    return Capacity;
   }
 
  private:
   // 私有构造函数，只能通过create方法创建
-  explicit SPSCQueueSoftArray(const int cap) noexcept : cap_(cap) {}
+  SPSCQueueSoftArray() noexcept = default;
   
   // 私有析构函数，只能通过destroy方法销毁
   ~SPSCQueueSoftArray() = default;
@@ -113,10 +109,9 @@ class SPSCQueueSoftArray {
   SPSCQueueSoftArray(SPSCQueueSoftArray&&) = delete;
   SPSCQueueSoftArray& operator=(SPSCQueueSoftArray&&) = delete;
 
-  alignas(kCacheLineSize) int cap_ = 0;
   alignas(kCacheLineSize) std::atomic<int> head_{0};
   alignas(kCacheLineSize) std::atomic<int> tail_{0};
-  alignas(kCacheLineSize) T buf_[0];  // 柔性数组成员
+  alignas(kCacheLineSize) T buf_[Capacity];
 };
 
 #endif  // _PERF_TEST_CHAN_SOFT_ARRAY_H_

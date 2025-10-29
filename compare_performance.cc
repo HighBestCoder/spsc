@@ -170,7 +170,8 @@ TestResult test_original_queue(QueueType& queue) {
 TestResult test_soft_array_queue() {
     producer_done.store(false);
     
-    auto* queue = SPSCQueueSoftArray<uint64_t>::create(QUEUE_SIZE);
+    using SoftArrayQueue = SPSCQueueSoftArray<uint64_t, 1024, 64>;
+    auto* queue = SoftArrayQueue::create();
     if (!queue) {
         throw std::runtime_error("Failed to create soft array queue");
     }
@@ -251,7 +252,7 @@ TestResult test_soft_array_queue() {
     result.producer_throughput = result.overall_throughput; // Approximation
     result.consumer_throughput = result.overall_throughput; // Approximation
     
-    SPSCQueueSoftArray<uint64_t>::destroy(queue);
+    SoftArrayQueue::destroy(queue);
     
     return result;
 }

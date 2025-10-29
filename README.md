@@ -128,14 +128,14 @@ make benchmark_cacheline    # 详细基准测试
 #include "chan_soft_array.h"
 
 // 推荐配置：64字节缓存行(平衡性能和内存)
-using RecommendedQueue = SPSCQueueSoftArray<int, 64>;
+using RecommendedQueue = SPSCQueueSoftArray<int, 1024, 64>;
 
 // 高性能配置：128字节缓存行(最佳性能)
-using HighPerformanceQueue = SPSCQueueSoftArray<int, 128>;
+using HighPerformanceQueue = SPSCQueueSoftArray<int, 1024, 128>;
 
 int main() {
-    // 创建队列(容量1024)
-    auto* queue = RecommendedQueue::create(1024);
+    // 创建队列
+    auto* queue = RecommendedQueue::create();
     
     // 生产者线程
     std::thread producer([queue]() {
@@ -204,7 +204,7 @@ int main() {
 
 #### 🥇 推荐配置：64字节缓存行
 ```cpp
-using ProductionQueue = SPSCQueueSoftArray<YourType, 64>;
+using ProductionQueue = SPSCQueueSoftArray<YourType, 1024, 64>;
 ```
 **优势**：
 - 优秀性能(144M ops/sec)
@@ -214,7 +214,7 @@ using ProductionQueue = SPSCQueueSoftArray<YourType, 64>;
 
 #### 🏆 极致性能：128字节缓存行
 ```cpp
-using HighPerfQueue = SPSCQueueSoftArray<YourType, 128>;
+using HighPerfQueue = SPSCQueueSoftArray<YourType, 1024, 128>;
 ```
 **优势**：
 - 最高吞吐量(170M ops/sec)

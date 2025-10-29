@@ -107,7 +107,17 @@ make help       # 查看帮助
 
 ### 🥇 生产环境推荐
 ```cpp
-using ProductionQueue = SPSCQueueSoftArray<YourType, 64>;
+using ProductionQueue = SPSCQueueSoftArray<YourType, 1024, 64>;
+```
+**优势**：
+- 优秀性能(144M ops/sec)
+- 内存效率高
+- 最佳性能/内存比率
+- 适合大多数生产环境
+
+#### 🏆 极致性能：128字节缓存行
+```cpp
+using HighPerfQueue = SPSCQueueSoftArray<YourType, 1024, 128>;
 ```
 - 优秀性能(144M ops/sec)
 - 内存效率高
