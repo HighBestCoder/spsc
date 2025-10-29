@@ -7,21 +7,57 @@
 #include <new>
 #include <cstdint>
 
-// 借用NanoLog的Fence实现
+// 跨平台内存屏障实现
 namespace Fence {
     // Load Fence: 防止load操作重排
     static void inline lfence() {
+#if defined(__x86_64__) || defined(__i386__)
+        // x86/x64 架构
         __asm__ __volatile__("lfence" ::: "memory");
+#elif defined(__aarch64__) || defined(__arm__)
+        // ARM64/ARM 架构 - 使用 dmb (data memory barrier)
+        __asm__ __volatile__("dmb ld" ::: "memory");
+#elif defined(__riscv)
+        // RISC-V 架构
+        __asm__ __volatile__("fence r,r" ::: "memory");
+#else
+        // 其他架构 - 使用编译器内存屏障
+        __asm__ __volatile__("" ::: "memory");
+#endif
     }
 
     // Store Fence: 防止store操作重排
     static void inline sfence() {
+#if defined(__x86_64__) || defined(__i386__)
+        // x86/x64 架构
         __asm__ __volatile__("sfence" ::: "memory");
+#elif defined(__aarch64__) || defined(__arm__)
+        // ARM64/ARM 架构 - 使用 dmb (data memory barrier)
+        __asm__ __volatile__("dmb st" ::: "memory");
+#elif defined(__riscv)
+        // RISC-V 架构
+        __asm__ __volatile__("fence w,w" ::: "memory");
+#else
+        // 其他架构 - 使用编译器内存屏障
+        __asm__ __volatile__("" ::: "memory");
+#endif
     }
 
     // Memory Fence: 防止所有内存操作重排
     static void inline mfence() {
+#if defined(__x86_64__) || defined(__i386__)
+        // x86/x64 架构
         __asm__ __volatile__("mfence" ::: "memory");
+#elif defined(__aarch64__) || defined(__arm__)
+        // ARM64/ARM 架构 - 使用 dmb (data memory barrier)
+        __asm__ __volatile__("dmb sy" ::: "memory");
+#elif defined(__riscv)
+        // RISC-V 架构
+        __asm__ __volatile__("fence" ::: "memory");
+#else
+        // 其他架构 - 使用编译器内存屏障加同步原语
+        __sync_synchronize();
+#endif
     }
 
     // Compiler Fence: 防止编译器重排，不影响CPU

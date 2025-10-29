@@ -7,6 +7,7 @@ CACHELINE_TARGET = cacheline_performance_test
 BENCHMARK_TARGET = benchmark_cacheline
 EXAMPLES_TARGET = usage_examples
 FENCE_TEST_TARGET = fence_vs_atomic_test
+ARCH_TARGET = arch_test
 SOURCES = main.cc
 COMPARE_SOURCES = compare_performance.cc
 MEMORY_SOURCES = memory_layout_test.cc
@@ -14,10 +15,11 @@ CACHELINE_SOURCES = cacheline_performance_test.cc
 BENCHMARK_SOURCES = benchmark_cacheline.cc
 EXAMPLES_SOURCES = usage_examples.cc
 FENCE_TEST_SOURCES = fence_vs_atomic_test.cc
+ARCH_SOURCES = arch_test.cc
 HEADERS = chan.h chan_soft_array.h chan_fence.h
 
 # Default target
-all: $(TARGET) $(COMPARE_TARGET) $(MEMORY_TARGET) $(CACHELINE_TARGET) $(BENCHMARK_TARGET) $(EXAMPLES_TARGET) $(FENCE_TEST_TARGET)
+all: $(TARGET) $(COMPARE_TARGET) $(MEMORY_TARGET) $(CACHELINE_TARGET) $(BENCHMARK_TARGET) $(EXAMPLES_TARGET) $(FENCE_TEST_TARGET) $(ARCH_TARGET)
 
 # Build the executable
 $(TARGET): $(SOURCES) $(HEADERS)
@@ -47,9 +49,13 @@ $(EXAMPLES_TARGET): $(EXAMPLES_SOURCES) $(HEADERS)
 $(FENCE_TEST_TARGET): $(FENCE_TEST_SOURCES) $(HEADERS)
 	$(CXX) $(CXXFLAGS) -o $(FENCE_TEST_TARGET) $(FENCE_TEST_SOURCES)
 
+# Build the architecture test
+$(ARCH_TARGET): $(ARCH_SOURCES) $(HEADERS)
+	$(CXX) $(CXXFLAGS) -o $(ARCH_TARGET) $(ARCH_SOURCES)
+
 # Clean target
 clean:
-	rm -f $(TARGET) $(COMPARE_TARGET) $(MEMORY_TARGET) $(CACHELINE_TARGET) $(BENCHMARK_TARGET) $(EXAMPLES_TARGET) $(FENCE_TEST_TARGET)
+	rm -f $(TARGET) $(COMPARE_TARGET) $(MEMORY_TARGET) $(CACHELINE_TARGET) $(BENCHMARK_TARGET) $(EXAMPLES_TARGET) $(FENCE_TEST_TARGET) $(ARCH_TARGET)
 
 # Run the original test
 run: $(TARGET)
@@ -79,12 +85,16 @@ examples: $(EXAMPLES_TARGET)
 fence-test: $(FENCE_TEST_TARGET)
 	./$(FENCE_TEST_TARGET)
 
+# Run architecture test
+arch-test: $(ARCH_TARGET)
+	./$(ARCH_TARGET)
+
 # Run performance report
 report: $(BENCHMARK_TARGET)
 	chmod +x performance_report.sh && ./performance_report.sh
 
 # Run all tests
-test-all: run compare memory cacheline benchmark examples fence-test
+test-all: run compare memory cacheline benchmark examples fence-test arch-test
 
 # Debug build
 debug: CXXFLAGS = -std=c++17 -g -Wall -Wextra -pthread -DDEBUG
