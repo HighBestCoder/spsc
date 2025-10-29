@@ -6,16 +6,18 @@ MEMORY_TARGET = memory_layout_test
 CACHELINE_TARGET = cacheline_performance_test
 BENCHMARK_TARGET = benchmark_cacheline
 EXAMPLES_TARGET = usage_examples
+FENCE_TEST_TARGET = fence_vs_atomic_test
 SOURCES = main.cc
 COMPARE_SOURCES = compare_performance.cc
 MEMORY_SOURCES = memory_layout_test.cc
 CACHELINE_SOURCES = cacheline_performance_test.cc
 BENCHMARK_SOURCES = benchmark_cacheline.cc
 EXAMPLES_SOURCES = usage_examples.cc
-HEADERS = chan.h chan_soft_array.h
+FENCE_TEST_SOURCES = fence_vs_atomic_test.cc
+HEADERS = chan.h chan_soft_array.h chan_fence.h
 
 # Default target
-all: $(TARGET) $(COMPARE_TARGET) $(MEMORY_TARGET) $(CACHELINE_TARGET) $(BENCHMARK_TARGET) $(EXAMPLES_TARGET)
+all: $(TARGET) $(COMPARE_TARGET) $(MEMORY_TARGET) $(CACHELINE_TARGET) $(BENCHMARK_TARGET) $(EXAMPLES_TARGET) $(FENCE_TEST_TARGET)
 
 # Build the executable
 $(TARGET): $(SOURCES) $(HEADERS)
@@ -41,9 +43,13 @@ $(BENCHMARK_TARGET): $(BENCHMARK_SOURCES) $(HEADERS)
 $(EXAMPLES_TARGET): $(EXAMPLES_SOURCES) $(HEADERS)
 	$(CXX) $(CXXFLAGS) -o $(EXAMPLES_TARGET) $(EXAMPLES_SOURCES)
 
+# Build the fence vs atomic test
+$(FENCE_TEST_TARGET): $(FENCE_TEST_SOURCES) $(HEADERS)
+	$(CXX) $(CXXFLAGS) -o $(FENCE_TEST_TARGET) $(FENCE_TEST_SOURCES)
+
 # Clean target
 clean:
-	rm -f $(TARGET) $(COMPARE_TARGET) $(MEMORY_TARGET) $(CACHELINE_TARGET) $(BENCHMARK_TARGET) $(EXAMPLES_TARGET)
+	rm -f $(TARGET) $(COMPARE_TARGET) $(MEMORY_TARGET) $(CACHELINE_TARGET) $(BENCHMARK_TARGET) $(EXAMPLES_TARGET) $(FENCE_TEST_TARGET)
 
 # Run the original test
 run: $(TARGET)
@@ -69,12 +75,16 @@ benchmark: $(BENCHMARK_TARGET)
 examples: $(EXAMPLES_TARGET)
 	./$(EXAMPLES_TARGET)
 
+# Run fence vs atomic test
+fence-test: $(FENCE_TEST_TARGET)
+	./$(FENCE_TEST_TARGET)
+
 # Run performance report
 report: $(BENCHMARK_TARGET)
 	chmod +x performance_report.sh && ./performance_report.sh
 
 # Run all tests
-test-all: run compare memory cacheline benchmark examples
+test-all: run compare memory cacheline benchmark examples fence-test
 
 # Debug build
 debug: CXXFLAGS = -std=c++17 -g -Wall -Wextra -pthread -DDEBUG
@@ -96,6 +106,7 @@ help:
 	@echo "  cacheline_performance_test - 构建缓存行性能测试"
 	@echo "  benchmark_cacheline - 构建基准测试"
 	@echo "  usage_examples     - 构建使用示例"
+	@echo "  fence_vs_atomic_test - 构建Fence vs Atomic对比测试"
 	@echo ""
 	@echo "运行测试:"
 	@echo "  run         - 运行原始实现测试"
@@ -104,6 +115,7 @@ help:
 	@echo "  cacheline   - 运行缓存行性能测试"
 	@echo "  benchmark   - 运行详细基准测试"
 	@echo "  examples    - 运行使用示例"
+	@echo "  fence-test  - 运行Fence vs Atomic对比测试"
 	@echo "  report      - 生成性能报告"
 	@echo "  test-all    - 运行所有测试"
 	@echo ""
