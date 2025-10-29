@@ -8,8 +8,9 @@
 #include <vector>
 #include <iostream>
 #include <new>
+#include <cstdint>
 
-template <typename T>
+template <typename T, uint32_t kCacheLineSize = 64>
 class SPSCQueueSoftArray {
  public:
   // 使用placement new创建SPSC队列
@@ -22,7 +23,7 @@ class SPSCQueueSoftArray {
     size_t total_size = base_size + array_size;
     
     // 分配内存，确保对齐
-    void* raw_memory = operator new(total_size, std::align_val_t(64));
+    void* raw_memory = operator new(total_size, std::align_val_t(kCacheLineSize));
     if (!raw_memory) {
       return nullptr;
     }
@@ -44,7 +45,7 @@ class SPSCQueueSoftArray {
       queue->~SPSCQueueSoftArray();
       
       // 释放内存
-      operator delete(queue, std::align_val_t(64));
+      operator delete(queue, std::align_val_t(kCacheLineSize));
     }
   }
 
@@ -86,12 +87,13 @@ class SPSCQueueSoftArray {
   }
 
   size_t size() const noexcept {
-    size_t diff = head_.load(std::memory_order_acquire) -
-                  tail_.load(std::memory_order_acquire);
+    int head = head_.load(std::memory_order_acquire);
+    int tail = tail_.load(std::memory_order_acquire);
+    int diff = head - tail;
     if (diff < 0) {
       diff += cap_;
     }
-    return diff;
+    return static_cast<size_t>(diff);
   }
 
   int capacity() const noexcept {
@@ -111,10 +113,10 @@ class SPSCQueueSoftArray {
   SPSCQueueSoftArray(SPSCQueueSoftArray&&) = delete;
   SPSCQueueSoftArray& operator=(SPSCQueueSoftArray&&) = delete;
 
-  alignas(64) int cap_ = 0;
-  alignas(64) std::atomic<int> head_{0};
-  alignas(64) std::atomic<int> tail_{0};
-  alignas(64) T buf_[0];  // 柔性数组成员
+  alignas(kCacheLineSize) int cap_ = 0;
+  alignas(kCacheLineSize) std::atomic<int> head_{0};
+  alignas(kCacheLineSize) std::atomic<int> tail_{0};
+  alignas(kCacheLineSize) T buf_[0];  // 柔性数组成员
 };
 
 #endif  // _PERF_TEST_CHAN_SOFT_ARRAY_H_
